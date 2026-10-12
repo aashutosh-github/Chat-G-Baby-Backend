@@ -96,6 +96,7 @@ export const sendMessage = async (req, res) => {
     }
 
     res.status(200).json({
+      user_input: content.trim(),
       output: aiReply.modelReply,
       chatId: chat._id,
       usage: {
@@ -143,5 +144,32 @@ export const sendMessage = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { chatId, msgId } = req.params;
+    if (
+      !chatId ||
+      !msgId ||
+      !mongoose.Types.ObjectId.isValid(chatId) ||
+      !mongoose.Types.ObjectId.isValid(msgId)
+    ) {
+      return res.status(400).json({ message: `Invalid chat or message id` });
+    }
+    const message = await Message.findOne({
+      _id: msgId,
+      userId: req.user._id,
+      chatId,
+    });
+    if (!message) {
+      return res.status(403).json({ message: `Invalid credentials` });
+    }
+    await Message.deleteOne({ _id: message._id });
+    return res.status(200).json({ message: `Message deleted successfully` });
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({ message: `Internal server error` });
   }
 };

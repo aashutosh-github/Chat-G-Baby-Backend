@@ -27,5 +27,10 @@ messageRouter.post(
   loadUserDataIntoReq,
   messageController.sendMessage,
 );
+messageRouter.delete(
+  "/:chatId/:msgId",
+  loadUserDataIntoReq,
+  messageController.deleteMessage,
+);
 
 export default messageRouter;
