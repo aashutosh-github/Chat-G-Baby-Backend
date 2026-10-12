@@ -135,7 +135,10 @@ export const profile = async (req, res) => {
       name: req.user.name,
       age: req.user.age,
       email: req.user.email,
-      totalTokenUsed: req.user.totalTokenUsed,
+      usage: {
+        tokenUsed: req.user.totalTokenUsed,
+        tokenLimit: process.env.MAX_TOKEN_LIMIT,
+      },
     });
   } catch (err) {
     console.error(err);
