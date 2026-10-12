@@ -98,6 +98,10 @@ export const sendMessage = async (req, res) => {
     res.status(200).json({
       output: aiReply.modelReply,
       chatId: chat._id,
+      usage: {
+        tokenUsed: aiReply.usage.totalTokens,
+        tokenLimit: process.env.MAX_TOKEN_LIMIT,
+      },
     });
 
     await Message.create({
