@@ -1,10 +1,10 @@
 import "dotenv/config";
 import express from "express";
-import connectDB from "./config/mongoose.ts";
-import { connectRedis } from "./config/redis.ts";
-import userRouter from "./routes/userRouter.ts";
-import chatRouter from "./routes/chatRouter.ts";
-import messageRouter from "./routes/messageRouter.ts";
+import connectDB from "./config/mongoose.js";
+import { connectRedis } from "./config/redis.js";
+import userRouter from "./routes/userRouter.js";
+import chatRouter from "./routes/chatRouter.js";
+import messageRouter from "./routes/messageRouter.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 

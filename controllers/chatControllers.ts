@@ -1,9 +1,22 @@
+import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import Chat from "../model/chatSchema.js";
 import Message from "../model/messageSchema.js";
 
-export const getRecentChats = async (req, res) => {
+type ChatParams = {
+  chatId: string;
+};
+
+export const getRecentChats = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: `User not authenticated`,
+      });
+    }
     const chats = await Chat.find({ userId: req.user._id })
       .select("topic updatedAt")
       .sort({ updatedAt: -1 })
@@ -19,10 +32,16 @@ export const getRecentChats = async (req, res) => {
   }
 };
 
-export const createChat = async (req, res) => {
+export const createChat = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: `User not authenticated` });
+    }
     const createdChat = await Chat.create({ userId: req.user._id });
-    res.status(201).json({
+    return res.status(201).json({
       message: "Chat created successfully",
       chat: {
         userId: createdChat.userId,
@@ -37,7 +56,10 @@ export const createChat = async (req, res) => {
   }
 };
 
-export const deleteChat = async (req, res) => {
+export const deleteChat = async (
+  req: Request<ChatParams>,
+  res: Response,
+): Promise<Response> => {
   try {
     const { chatId } = req.params;
 
@@ -45,7 +67,7 @@ export const deleteChat = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const chat = await Chat.findOne({ _id: chatId, userId: req.user._id });
+    const chat = await Chat.findOne({ _id: chatId, userId: req.user?._id });
     if (!chat) {
       return res.status(403).json({ message: "Invalid credentials" });
     }
@@ -53,16 +75,25 @@ export const deleteChat = async (req, res) => {
     await Message.deleteMany({ chatId: chat._id });
     await Chat.deleteOne({ _id: chat._id });
 
-    res.status(200).json({ message: "Chat deleted successfully" });
+    return res.status(200).json({ message: "Chat deleted successfully" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const getSingleChat = async (req, res) => {
+export const getSingleChat = async (
+  req: Request<ChatParams>,
+  res: Response,
+): Promise<Response> => {
   try {
     const { chatId } = req.params;
+
+    if (!req.user) {
+      return res.status(401).json({
+        message: `User is not authenticated`,
+      });
+    }
 
     const chat = await Chat.findOne({
       _id: chatId,
@@ -76,7 +107,7 @@ export const getSingleChat = async (req, res) => {
       userId: chat.userId,
       chatId: chat._id,
       topic: chat.topic,
-      usage: chat.usage,
+      usage: chat.totalTokens,
     });
   } catch (err) {
     console.error(err);

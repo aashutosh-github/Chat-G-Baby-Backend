@@ -11,6 +11,11 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
   "bugs": {
     "url": "https://github.com/aashutosh-github/AI_backend/issues"
   },
@@ -26,5 +31,15 @@
     "mongoose": "9.8.1",
     "redis": "6.2.1",
     "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }
