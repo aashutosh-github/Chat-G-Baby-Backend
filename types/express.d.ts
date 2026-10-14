@@ -1,11 +1,15 @@
 import type { JwtPayload } from "jsonwebtoken";
-import type { HydratedDocument } from "mongoose";
-import type User from "../model/userSchema.js";
+import type { Types } from "mongoose";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: HydratedDocument<typeof User>;
+      user?: {
+        _id: Types.ObjectId;
+        name: string;
+        age?: number;
+        email: string;
+      };
       userId?: string;
       token?: string;
       tokenPayload?: JwtPayload & {
