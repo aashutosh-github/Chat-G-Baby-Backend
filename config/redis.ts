@@ -9,7 +9,7 @@ redisClient.on("error", err => {
   throw new Error("Could not connect to redis");
 });
 
-const connectRedis = async () => {
+const connectRedis: () => Promise<void> = async () => {
   await redisClient.connect();
   console.log(`Redis connected successfully`);
 };

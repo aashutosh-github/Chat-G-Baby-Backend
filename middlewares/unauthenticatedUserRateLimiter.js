@@ -1,6 +1,6 @@
 // I will only allow 10 requests/min on unauthorized user requests
 
-import { redisClient } from "../config/redis.js";
+import { redisClient } from "../config/redis.ts";
 import normalizeTime from "../utils/normalizeTime.js";
 
 const unauthenticatedRateLimiter = async (req, res, next) => {

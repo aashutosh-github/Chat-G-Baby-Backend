@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { signupSchema, loginSchema } from "../validators/userValidators.js";
 import Chat from "../model/chatSchema.js";
 import Message from "../model/messageSchema.js";
-import { redisClient } from "../config/redis.js";
+import { redisClient } from "../config/redis.ts";
 
 const cookiesConfig = {
   httpOnly: true,
