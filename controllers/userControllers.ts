@@ -4,7 +4,9 @@ import bcrypt from "bcrypt";
 import { signupSchema, loginSchema } from "../validators/userValidators.js";
 import Chat from "../model/chatSchema.js";
 import Message from "../model/messageSchema.js";
-import { redisClient } from "../config/redis.ts";
+import { redisClient } from "../config/redis.js";
+import type { Request, Response } from "express";
+import type { Types } from "mongoose";
 
 const cookiesConfig = {
   httpOnly: true,
@@ -12,17 +14,19 @@ const cookiesConfig = {
   maxAge: 1000 * 60 * 60,
 };
 
-const createToken = (id, email) => {
+const createToken = (id: Types.ObjectId, email: string): string => {
   if (!process.env.JWT_SECRET) {
     throw new Error("Environment variable not found");
   }
-  const token = jwt.sign({ id, email }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: id.toString(), email }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
-  return token;
 };
 
-export const signUp = async (req, res) => {
+export const signUp = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const result = signupSchema.safeParse(req.body);
 
@@ -39,7 +43,7 @@ export const signUp = async (req, res) => {
         .json({ message: "These credentials are already in use" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword: string = await bcrypt.hash(password, 12);
 
     const createdUser = await User.create({
       name,
@@ -62,7 +66,7 @@ export const signUp = async (req, res) => {
   }
 };
 
-export const logIn = async (req, res) => {
+export const logIn = async (req: Request, res: Response): Promise<Response> => {
   try {
     const result = loginSchema.safeParse(req.body);
 
@@ -92,7 +96,7 @@ export const logIn = async (req, res) => {
         name: user.name,
         age: user.age,
         email: user.email,
-        usage: user.usage,
+        usage: user.totalTokenUsed,
       },
     });
   } catch (err) {
@@ -101,21 +105,24 @@ export const logIn = async (req, res) => {
   }
 };
 
-export const logOut = async (req, res) => {
+export const logOut = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const token = req.token;
     const payload = req.tokenPayload;
     const currentTime = Math.floor(Date.now() / 1000);
+
+    if (!payload || !payload.exp) {
+      return res.status(401).json({ message: `User is not logged-in` });
+    }
     const remainingTime = payload.exp - currentTime;
 
     if (remainingTime > 0) {
-      const result = await redisClient.set(
-        `token-blocked:${token}`,
-        "blocked",
-        {
-          ex: remainingTime,
-        },
-      );
+      await redisClient.set(`token-blocked:${token}`, "blocked", {
+        EX: remainingTime,
+      });
     }
 
     res.clearCookie("token", {
@@ -129,14 +136,21 @@ export const logOut = async (req, res) => {
   }
 };
 
-export const profile = async (req, res) => {
+export const profile = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: `User is not authencticated` });
+    }
+    const user = req.user;
     return res.status(200).json({
-      name: req.user.name,
-      age: req.user.age,
-      email: req.user.email,
+      name: user.name,
+      age: user.age,
+      email: user.email,
       usage: {
-        tokenUsed: req.user.totalTokenUsed,
+        tokenUsed: user.totalTokenUsed,
         tokenLimit: process.env.MAX_TOKEN_LIMIT,
       },
     });
@@ -146,21 +160,40 @@ export const profile = async (req, res) => {
   }
 };
 
-export const deleteProfile = async (req, res) => {
+export const deleteProfile = async (req: Request, res: Response) => {
   try {
-    const { id: userId } = req.user;
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ message: `User data not found, please log-in again` });
+    }
+    const { _id: userId } = req.user;
+
+    if (!req.token || !req.tokenPayload) {
+      return res.status(401).json({ message: `User is not authencticated` });
+    }
+    const token = req.token;
+
+    if (typeof req.tokenPayload.exp !== "number") {
+      return res.status(401).json({ message: `Token expiry is missing` });
+    }
+    const payload = req.tokenPayload;
 
     await Message.deleteMany({ userId });
     await Chat.deleteMany({ userId });
     await User.deleteOne({ _id: userId });
 
-    const token = req.token;
-    const payload = req.tokenPayload;
     const currentTime = Math.floor(Date.now() / 1000);
-    const remainingTime = payload.exp - currentTime;
+    if (typeof payload.exp !== "number") {
+      return res
+        .status(400)
+        .json({ message: `The expiry of token should be a valid time` });
+    }
+    const remainingTime: number = payload.exp - currentTime;
+
     if (remainingTime > 0) {
       await redisClient.set(`token-blocked:${token}`, "blocked", {
-        ex: remainingTime,
+        EX: remainingTime,
       });
     }
     res.clearCookie("token", {
