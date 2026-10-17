@@ -9,6 +9,7 @@ declare global {
         name: string;
         age?: number;
         email: string;
+        totalTokenUsed?: number;
       };
       userId?: string;
       token?: string;
