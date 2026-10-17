@@ -3,8 +3,9 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import * as chatController from "../controllers/chatControllers.js";
 import authenticatedUserRateLimiter from "../middlewares/authenticatedUserRateLimiter.js";
 import loadUserDataIntoReq from "../middlewares/loadUserDataIntoReq.js";
+import type { Router } from "express";
 
-const chatRouter = express.Router();
+const chatRouter: Router = express.Router();
 
 chatRouter.use(authMiddleware);
 chatRouter.use(authenticatedUserRateLimiter);

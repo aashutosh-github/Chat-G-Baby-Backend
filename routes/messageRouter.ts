@@ -4,8 +4,9 @@ import * as messageController from "../controllers/messageControllers.js";
 import authenticatedUserRateLimiter from "../middlewares/authenticatedUserRateLimiter.js";
 import loadUserDataIntoReq from "../middlewares/loadUserDataIntoReq.js";
 import tokenUsageRateLimiter from "../middlewares/tokenUsageRateLimiter.js";
+import type { Router } from "express";
 
-const messageRouter = express.Router();
+const messageRouter: Router = express.Router();
 
 messageRouter.use(authMiddleware);
 messageRouter.use(authenticatedUserRateLimiter);

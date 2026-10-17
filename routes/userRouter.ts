@@ -4,8 +4,9 @@ import * as userController from "../controllers/userControllers.js";
 import unauthenticatedRateLimiter from "../middlewares/unauthenticatedUserRateLimiter.js";
 import loadUserDataIntoReq from "../middlewares/loadUserDataIntoReq.js";
 import authenticatedRateLimiter from "../middlewares/authenticatedUserRateLimiter.js";
+import type { Router } from "express";
 
-const userRouter = express.Router();
+const userRouter: Router = express.Router();
 
 userRouter.post("/signup", unauthenticatedRateLimiter, userController.signUp);
 userRouter.post("/login", unauthenticatedRateLimiter, userController.logIn);
