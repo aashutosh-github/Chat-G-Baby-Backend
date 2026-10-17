@@ -1,5 +1,11 @@
-const normalizeTime = timeInSeconds => {
-  let time = {
+type Time = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+};
+
+const normalizeTime: (time: number) => string = timeInSeconds => {
+  let time: Time = {
     hours: 0,
     minutes: 0,
     seconds: 0,
@@ -20,12 +26,12 @@ const normalizeTime = timeInSeconds => {
       seconds: timeInSeconds,
     };
   } else if (timeInSeconds >= 60) {
-    const timeInMinutes = Math.floor(timeInSeconds / 60);
-    const remainingSeconds = Math.floor(timeInSeconds % 60);
+    const timeInMinutes: number = Math.floor(timeInSeconds / 60);
+    const remainingSeconds: number = Math.floor(timeInSeconds % 60);
 
     if (timeInMinutes >= 60) {
-      const timeInHours = Math.floor(timeInMinutes / 60);
-      const remainingMinutes = Math.floor(timeInMinutes % 60);
+      const timeInHours: number = Math.floor(timeInMinutes / 60);
+      const remainingMinutes: number = Math.floor(timeInMinutes % 60);
       time = {
         hours: timeInHours,
         minutes: remainingMinutes,
@@ -40,7 +46,7 @@ const normalizeTime = timeInSeconds => {
     }
   }
 
-  let finalTime = "";
+  let finalTime: string = "";
 
   if (time.hours !== 0) {
     finalTime +=
