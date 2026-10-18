@@ -1,4 +1,5 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
+
 import Chat from "../model/chatSchema.js";
 import Message from "../model/messageSchema.js";
 import { addUserTokenUsage } from "../utils/userUsage.js";
@@ -7,8 +8,10 @@ import { buildContextForAi } from "../utils/buildContext.js";
 import { generateAiResponse } from "../service/geminiService.js";
 import { updateSummaryIfNeeded } from "../service/summaryService.js";
 import { redisClient } from "../config/redis.js";
-import type { Application, Request, Response } from "express";
+
+import type { Request, Response } from "express";
 import type { AiContext } from "../utils/buildContext.js";
+import type { AiResponse } from "../service/geminiService.js";
 
 type MessageParam = {
   chatId: string;
@@ -129,7 +132,7 @@ export const sendMessage = async (
       });
       return;
     }
-    const aiReply = await generateAiResponse(messages, userInfo);
+    const aiReply: AiResponse = await generateAiResponse(messages, userInfo);
     await redisClient.del(`chat-lock:id:${req.userId}`);
 
     isFirstMessage = chat.messageCount === 0;
@@ -160,13 +163,13 @@ export const sendMessage = async (
       chatId: chat._id,
       role: "model_output",
       content: aiReply.modelReply,
-      totalTokens: parseInt(aiReply.usage.totalTokens),
+      totalTokens: aiReply.usage.totalTokens,
     });
 
     chat.messageCount += 2;
 
     // save usage data to redis
-    const tokenUsed = await redisClient.incrBy(
+    const tokenUsed: number = await redisClient.incrBy(
       tokenUsageKey,
       Number(aiReply.usage.totalTokens),
     );

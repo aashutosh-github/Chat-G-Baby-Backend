@@ -19,13 +19,7 @@ const loadUserDataIntoReq = async (
       return res.status(404).json({ message: `User does not exist` });
     }
 
-    req.user = {
-      _id: user._id,
-      name: user.name,
-      age: user.age ?? undefined,
-      email: user.email,
-      totalTokenUsed: user.totalTokenUsed,
-    };
+    req.user = user;
 
     next();
   } catch (err) {
