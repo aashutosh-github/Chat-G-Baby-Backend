@@ -8,7 +8,9 @@ import messageRouter from "./routes/messageRouter.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-const app = express();
+import type { Express } from "express";
+
+const app: Express = express();
 
 app.use(
   cors({
@@ -24,11 +26,11 @@ app.use("/user", userRouter);
 app.use("/chat", chatRouter);
 app.use("/msg", messageRouter);
 
-const startServer = async () => {
+const startServer: () => Promise<void> = async (): Promise<void> => {
   try {
     await connectDB();
     await connectRedis();
-    app.listen(process.env.PORT, () => {
+    app.listen(process.env.PORT, (): void => {
       console.log(`Server running at port ${process.env.PORT}`);
     });
   } catch (err) {
