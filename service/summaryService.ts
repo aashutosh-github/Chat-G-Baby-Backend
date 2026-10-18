@@ -2,9 +2,13 @@ import Chat from "../model/chatSchema.js";
 import Message from "../model/messageSchema.js";
 import User from "../model/userSchema.js";
 
+import { Types } from "mongoose";
+
 const summaryChunk = 20;
 
-export const updateSummaryIfNeeded = async chatId => {
+export const updateSummaryIfNeeded: (
+  chatId: Types.ObjectId,
+) => Promise<void> = async chatId => {
   const chat = await Chat.findOne({ _id: chatId });
   if (!chat) {
     throw new Error("No such chat found");
@@ -12,6 +16,12 @@ export const updateSummaryIfNeeded = async chatId => {
 
   if (chat.messageCount - chat.summarizedTillMessageNumber < summaryChunk) {
     return;
+  }
+
+  const scaledownApiKey = process.env.SCALEDOWN_API_KEY;
+
+  if (!scaledownApiKey) {
+    throw new Error(`Summarization model API key not configured`);
   }
 
   const messagesToBeSummarized = await Message.find({ chatId })
@@ -23,24 +33,27 @@ export const updateSummaryIfNeeded = async chatId => {
 
   if (messagesToBeSummarized.length === 0) return;
 
-  const options = {
+  const getData = await fetch("https://api.scaledown.xyz/v1/chat/completions", {
     method: "POST",
     headers: {
-      "x-api-key": process.env.SCALEDOWN_API_KEY,
+      "x-api-key": scaledownApiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      text: JSON.stringify(messagesToBeSummarized),
-      instructions:
-        "summarize these chats while including important information.",
-      max_tokens: 2000,
+      model: "summarize",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Summarize the conversation while preserving important information",
+        },
+        {
+          role: "user",
+          content: JSON.stringify(messagesToBeSummarized),
+        },
+      ],
     }),
-  };
-
-  const getData = await fetch(
-    "https://api.scaledown.xyz/summarization/abstractive",
-    options,
-  );
+  });
   if (!getData.ok) {
     throw new Error("AI response failed");
   }
