@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import type { HydratedDocument, InferSchemaType } from "mongoose";
+
 const chatSchema = new mongoose.Schema(
   {
     userId: {
@@ -43,6 +45,9 @@ const chatSchema = new mongoose.Schema(
 
 chatSchema.index({ userId: 1, updatedAt: -1 });
 
-const Chat = mongoose.model("Chat", chatSchema);
+export type ChatSchemaType = InferSchemaType<typeof chatSchema>;
+export type ChatDocument = HydratedDocument<ChatSchemaType>;
+
+const Chat = mongoose.model<ChatSchemaType>("Chat", chatSchema);
 
 export default Chat;
