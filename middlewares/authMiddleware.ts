@@ -1,4 +1,4 @@
-import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import { redisClient } from "../config/redis.js";
 
@@ -61,11 +61,11 @@ const authMiddleware = async (
   } catch (err) {
     console.error(err);
 
-    if (err instanceof TokenExpiredError) {
+    if (err instanceof Error && err.name === "TokenExpiredError") {
       return res.status(401).json({ message: `Please login again` });
     }
 
-    if (err instanceof JsonWebTokenError) {
+    if (err instanceof Error && err.name === "JsonWebTokenError") {
       return res.status(403).json({
         message: `Token was tampered with`,
       });
